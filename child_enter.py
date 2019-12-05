@@ -8,8 +8,6 @@ import wget
 from PIL import Image
 from imutils.video import VideoStream
 
-subjects = ["", "Anderson", "And", "x"]
-
 
 fname = "trainer/trainer.yml"
 API_BASE = 'https://vemvai.stopplay.io/'
@@ -18,8 +16,7 @@ user = 'mpbear'
 passw = 'wordpass123'
 matched = []
 url = 'http://vemvai.stopplay.io/mediafiles/yml/trainer.yml'
-ip_camera_rtsp = 'rtsp://192.168.1.6:554/user=admin&password=admin&channel=1&stream=0.sdp?'
-
+ip_camera_rtsp = 'rtsp://192.168.1.8:554/user=admin&password=admin&channel=1&stream=0.sdp?'
 
 
 if not os.path.isfile(fname):
@@ -33,7 +30,7 @@ face_cascade = cv2.CascadeClassifier('lbpcascade_frontalface.xml')
 #using ip camera
 #insert the rtsp or http ip here
 cap = VideoStream(src=ip_camera_rtsp).start()
-#cap = VideoStream('rtsp://192.168.1.3:8080/h264_pcm.sdp') #cellphone camera rtsp
+
 #using webcam
 #cap = cv2.VideoCapture(0)
 
@@ -42,7 +39,7 @@ recognizer.read(fname)
 
 
 while True:  #sorry god of computers for that
-
+	unity = 1
 	#cv2.VideoCapture.grab(cap)
 	#cv2.VideoCapture.retrieve(cap)	
 	img = cap.read()
@@ -57,29 +54,27 @@ while True:  #sorry god of computers for that
 	out = img.copy()
 
 	for(x,y,w,h) in faces:	
-		##adding the blur
+
+
 		#cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
 
 		ids, conf = recognizer.predict(gray[y: y + h, x: x + w])
 
 		if conf < 50:
-			#subjects[] it's the array with the students name
-			#ids are the integer identification of every student
-			#the code it's like this because the opencv work with integer identification only so we need a table with students information
-			#print(conf)
-			name = subjects[ids]
-			#print(name)
-			#cv2.VideoCapture.grab(cap)
-			#(x+2, y + h - 5)
+
+			req = requests.get(API_BASE + f'api/child/inschool/{str(ids)}/', auth = (user, passw))
+			#print(req.status_code)
+			json = req.json()
+			name = json['name']
+			#ading the blur 
 			cv2.putText(img, name, (x + 2, y + h - 5), cv2.FONT_HERSHEY_DUPLEX, 2, (150,255,0), 2, lineType=cv2.LINE_AA)			
 			mask = np.zeros((480, 704, 3), dtype=np.uint8)
 			mask = cv2.rectangle(mask, (x, y), (x + w, y+h), (255, 255, 255), -1)
 			out = np.where(mask == np.array([255,255,255]), img, blurred_img)
-			##end of blur
-			if ids not in matched:
 
-				matched.append(ids) #adds the matched studetn on the matched list
+
+			if json['in_school'] == False: 
 
 				#sending to server
 				myobj = {"log_type": "ENTER", "child": ids}
@@ -100,26 +95,11 @@ while True:  #sorry god of computers for that
 
 				#cv2.VideoCapture.grab(cap)
 				#time.sleep(1)
-
-			elif ids in matched:
+			elif json['in_school'] == True:
 				cv2.putText(img, "Matched, move on!" , (0, 440), cv2.FONT_HERSHEY_DUPLEX, 1, (150,255,0), 2, lineType=cv2.LINE_AA)
 
-
-
-			
-
-			#sending to server
-			#r = requests.post(url = API_BASE + API_ENDPOINT + str(ids), auth = (user, passw))
-			#pastebin_url = r.text
-			#print(r.status_code)
-			#print(pastebin_url)
-
 		else:
-			#subjects[] its the array with the students name
-			#ids are the integer identification of every student
-			#the code it's like this because the opencv work with integer identification only so we need a table with students information
 
-			name = subjects[ids]
 			cv2.putText(img, 'Matching...', (x + 2, y + h - 5), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2, lineType=cv2.LINE_AA)
 
 
