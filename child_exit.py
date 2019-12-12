@@ -78,7 +78,12 @@ while True:  #sorry god of computers for that
 				myobj = {"log_type": "EXIT", "child": ids}
 				r = requests.post(url = API_BASE + API_ENDPOINT, data = myobj , auth = (user, passw))
 				print(r.status_code)				
-
+				Pil_img = Image.fromarray(orig)
+				img_numpy = np.array(Pil_img, 'uint8')
+				crop_img = img_numpy[y: y + h, x: x + w]
+				p = requests.post(url = API_BASE + "api/child/" + str(ids) + "/add_image/", auth = (user, passw))
+				print("p " + str(p.status_code))
+				
 				while j >= 1:					
 
 					if j%1 == 0:
