@@ -17,6 +17,10 @@ passw = 'wordpass123'
 matched = []
 url = 'http://vemvai.stopplay.io/mediafiles/yml/trainer.yml'
 ip_camera_rtsp = 'rtsp://192.168.1.8:554/user=admin&password=admin&channel=1&stream=0.sdp?'
+now = datetime.now()
+today8pm = now.replace(hour = 20, minute = 0, second = 0, microsecond = 0)
+
+
 
 
 if not os.path.isfile(fname):
@@ -24,6 +28,7 @@ if not os.path.isfile(fname):
 	print("Downloading data...")
 	wget.download(url, fname)
 	#exit(0)
+
 
 face_cascade = cv2.CascadeClassifier('lbpcascade_frontalface.xml')
 
@@ -39,15 +44,17 @@ recognizer.read(fname)
 
 
 while True:  #sorry god of computers for that
-	unity = 1
-	#cv2.VideoCapture.grab(cap)
-	#cv2.VideoCapture.retrieve(cap)	
+	
+	#baixa os arquivos todas noites as 20
+	if now == today8pm:
+		wget.download(url, fname)
+	
 	img = cap.read()
 	#reduce J to make the 'acess granted' message faster
 	j        = 80 #a time constant to works with frames
 	blurred_img = cv2.GaussianBlur(img, (21, 21), 0)
 	gray     = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	#1.4 and 2 was  good
+	#1.1 and 2 was  good
 	cv2.resize(gray, (300, 300), interpolation=cv2.INTER_LINEAR)
 
 	faces    = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(80,80))
@@ -83,7 +90,7 @@ while True:  #sorry god of computers for that
 				Pil_img = Image.fromarray(orig)
 				img_numpy = np.array(Pil_img, 'uint8')
 				crop_img = img_numpy[y: y + h, x: x + w]
-				p = requests.post(url = API_BASE + "api/child/" + str(ids) + "/add_image/", auth = (user, passw))
+				p = requests.post(url = API_BASE + "api/child/" + str(ids) + "/add_image/", data = crop_img, auth = (user, passw))
 				print("p " + str(p.status_code))				
 
 				while j >= 1:					

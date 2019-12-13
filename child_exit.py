@@ -17,6 +17,8 @@ passw = 'wordpass123'
 matched = []
 url = 'http://vemvai.stopplay.io/mediafiles/yml/trainer.yml'
 ip_camera_rtsp = 'rtsp://192.168.1.8:554/user=admin&password=admin&channel=1&stream=0.sdp?'
+now = datetime.now()
+today8pm = now.replace(hour = 20, minute = 0, second = 0, microsecond = 0)
 
 
 
@@ -40,6 +42,10 @@ recognizer.read(fname)
 
 while True:  #sorry god of computers for that
 
+
+	if now == today8pm:
+		wget.download(url, fname)
+	
 	img = cap.read()
 	#reduce J to make the 'acess granted' message faster
 	j        = 80 #a time constant to works with frames
@@ -81,7 +87,7 @@ while True:  #sorry god of computers for that
 				Pil_img = Image.fromarray(orig)
 				img_numpy = np.array(Pil_img, 'uint8')
 				crop_img = img_numpy[y: y + h, x: x + w]
-				p = requests.post(url = API_BASE + "api/child/" + str(ids) + "/add_image/", auth = (user, passw))
+				p = requests.post(url = API_BASE + "api/child/" + str(ids) + "/add_image/", data = crop_img, auth = (user, passw))
 				print("p " + str(p.status_code))
 				
 				while j >= 1:					
